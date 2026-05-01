@@ -1,133 +1,170 @@
 package org.example.project
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.*
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
+import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteItem
+import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
+import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteType
+import androidx.compose.material3.adaptive.navigationsuite.rememberNavigationSuiteScaffoldState
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.window.core.layout.WindowSizeClass
-import org.example.project.ui.util.adaptiveHorizontalPadding
-import kotlinx.coroutines.launch
+import com.arkivanov.decompose.extensions.compose.stack.Children
+import com.arkivanov.decompose.extensions.compose.stack.animation.fade
+import com.arkivanov.decompose.extensions.compose.stack.animation.stackAnimation
+import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import kotlinproject.composeapp.generated.resources.Res
+import kotlinproject.composeapp.generated.resources.about_screen_text
+import kotlinproject.composeapp.generated.resources.about_screen_topbar_title
+import kotlinproject.composeapp.generated.resources.home_screen_go_to_second_screen_button
+import kotlinproject.composeapp.generated.resources.home_screen_go_to_second_screen_text_field_label
+import kotlinproject.composeapp.generated.resources.home_screen_topbar_title
+import kotlinproject.composeapp.generated.resources.second_screen_topbar_title
+import org.example.project.component.AboutComponent
+import org.example.project.component.HomeComponent
+import org.example.project.component.RootComponent
+import org.example.project.component.SecondComponent
+import org.jetbrains.compose.resources.stringResource
 import ui.theme.getApplicationColorScheme
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3AdaptiveApi::class)
 @Composable
-fun App() {
+fun App(rootComponent: RootComponent) {
     MaterialTheme(colorScheme = getApplicationColorScheme()) {
-        val snackbarHostState = remember { SnackbarHostState() }
-        val scope = rememberCoroutineScope()
-        var counter by remember { mutableIntStateOf(0) }
-        var showDialog by remember { mutableStateOf(false) }
+        val navigationSuiteType = with(currentWindowAdaptiveInfo()) {
+            when {
+                windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND) ->
+                    NavigationSuiteType.WideNavigationRailExpanded
 
-        // Получаем класс окна для адаптивности
-        val windowSizeClass = currentWindowAdaptiveInfo().windowSizeClass
-        val isWide = windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)
+                windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND) ->
+                    NavigationSuiteType.WideNavigationRailCollapsed
 
-        Scaffold(
-            topBar = {
-                TopAppBar(
-                    title = { Text("Лабораторная №5") },
-                    actions = {
-                        IconButton(onClick = {
-                            scope.launch {
-                                snackbarHostState.showSnackbar("Снекбар! Действие необратимо? Нет, просто пример.")
-                            }
-                        }) {
-                            Icon(Icons.Default.Add, contentDescription = "Показать снекбар")
-                        }
-                    }
+                else -> NavigationSuiteType.ShortNavigationBarCompact
+            }
+        }
+
+        val navigationScaffoldState = rememberNavigationSuiteScaffoldState()
+        val childStack by rootComponent.childStack.subscribeAsState()
+
+        LaunchedEffect(childStack.active.configuration) {
+            if(childStack.active.configuration is RootComponent.Config.MainScreen) {
+                navigationScaffoldState.show()
+            } else {
+                navigationScaffoldState.hide()
+            }
+        }
+
+        NavigationSuiteScaffold(
+            navigationItems = {
+                NavigationSuiteItem(
+                    selected = childStack.active.configuration == RootComponent.Config.Home,
+                    onClick = { rootComponent.navigate(RootComponent.Config.Home) },
+                    icon = { Icon(Icons.Default.Home, contentDescription = null) },
+                    label = { Text(stringResource(Res.string.home_screen_topbar_title)) },
+                    navigationSuiteType = navigationSuiteType
+                )
+                NavigationSuiteItem(
+                    selected = childStack.active.configuration == RootComponent.Config.About,
+                    onClick = { rootComponent.navigate(RootComponent.Config.About) },
+                    icon = { Icon(Icons.Default.Info, contentDescription = null) },
+                    label = { Text(stringResource(Res.string.about_screen_topbar_title)) },
+                    navigationSuiteType = navigationSuiteType
                 )
             },
-            snackbarHost = { SnackbarHost(snackbarHostState) }
-        ) { contentPadding ->
-            // Адаптивная разметка: Row на широких экранах, Column на узких
-            if (isWide) {
-                Row(
-                    modifier = Modifier
-                        .padding(contentPadding)
-                        .adaptiveHorizontalPadding(windowSizeClass)
-                        .fillMaxSize(),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    CounterCard(counter, onIncrement = { counter++ }, onResetClick = { showDialog = true })
-                    SampleListCard()
-                }
-            } else {
-                Column(
-                    modifier = Modifier
-                        .padding(contentPadding)
-                        .adaptiveHorizontalPadding(windowSizeClass)
-                        .fillMaxSize(),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    CounterCard(counter, onIncrement = { counter++ }, onResetClick = { showDialog = true })
-                    SampleListCard()
-                }
-            }
-        }
-
-        // Диалог подтверждения (необратимое действие — сброс счётчика)
-        if (showDialog) {
-            AlertDialog(
-                onDismissRequest = { showDialog = false },
-                title = { Text("Сбросить счётчик?") },
-                text = { Text("Значение будет потеряно. Вы уверены?") },
-                icon = { Icon(Icons.Default.Warning, contentDescription = null) },
-                confirmButton = {
-                    TextButton(
-                        onClick = {
-                            counter = 0
-                            showDialog = false
-                        }
-                    ) { Text("Сбросить") }
-                },
-                dismissButton = {
-                    TextButton(onClick = { showDialog = false }) { Text("Отмена") }
-                }
-            )
-        }
-    }
-}
-
-@Composable
-fun CounterCard(counter: Int, onIncrement: () -> Unit, onResetClick: () -> Unit) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(4.dp)
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+            navigationSuiteType = navigationSuiteType,
+            state = navigationScaffoldState
         ) {
-            Text("Счётчик: $counter", style = MaterialTheme.typography.headlineSmall)
-            Spacer(modifier = Modifier.height(8.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Button(onClick = onIncrement) { Text("Увеличить") }
-                OutlinedButton(onClick = onResetClick) { Text("Сбросить") }
+            Children(rootComponent.childStack, animation = stackAnimation(fade())) {
+                when (val child = it.instance) {
+                    is RootComponent.Child.Home -> HomeScreenContent(child.component)
+                    is RootComponent.Child.Second -> SecondScreenContent(child.component)
+                    is RootComponent.Child.About -> AboutScreenContent(child.component)
+                }
             }
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3AdaptiveApi::class)
 @Composable
-fun SampleListCard() {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(4.dp)
-    ) {
-        LazyColumn(modifier = Modifier.padding(16.dp)) {
-            items(20) { index ->
-                Text("Элемент списка #${index + 1}")
-                Spacer(modifier = Modifier.height(4.dp))
+fun HomeScreenContent(component: HomeComponent) {
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(stringResource(Res.string.home_screen_topbar_title))
+                },
+            )
+        },
+    ) { contentPadding ->
+        Column(
+            Modifier.padding(contentPadding)
+        ) {
+            var text by remember { mutableStateOf("") }
+            OutlinedTextField(
+                value = text,
+                onValueChange = { text = it },
+                label = { Text(stringResource(Res.string.home_screen_go_to_second_screen_text_field_label)) },
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Button(
+                onClick = {
+                    component.navigateToSecondScreen(text)
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(stringResource(Res.string.home_screen_go_to_second_screen_button))
             }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3AdaptiveApi::class)
+@Composable
+fun SecondScreenContent(component: SecondComponent) {
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(stringResource(Res.string.second_screen_topbar_title))
+                },
+            )
+        },
+    ) { contentPadding ->
+        Column(
+            Modifier.padding(contentPadding)
+        ) {
+            SelectionContainer {
+                Text(component.param)
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3AdaptiveApi::class, ExperimentalMaterial3Api::class)
+@Composable
+fun AboutScreenContent(component: AboutComponent) {
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(stringResource(Res.string.about_screen_topbar_title))
+                },
+            )
+        },
+    ) { contentPadding ->
+        Column(
+            Modifier.padding(contentPadding)
+        ) {
+            Text(stringResource(Res.string.about_screen_text))
         }
     }
 }

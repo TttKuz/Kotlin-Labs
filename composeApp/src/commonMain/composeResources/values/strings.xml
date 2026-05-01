@@ -1,12 +1,9 @@
 <resources>
-    <string name="string1">String from resources 1</string>
-    <string name="string2">String from resources 2</string>
-    <string name="parametrised">Number: %1$d</string>
-    <string name="parametrised2">Input: %1$s</string>
-    <plurals name="things">
-        <item quantity="one">%1$d thing</item>
-        <item quantity="other">%1$d things</item>
-    </plurals>
-    <string name="increment">Increment</string>
-    <string name="decrement">Decrement</string>
+    <string name="home_screen_topbar_title">Домашний экран</string>
+    <string name="second_screen_topbar_title">Второй экран</string>
+    <string name="about_screen_topbar_title">О программе</string>
+
+    <string name="home_screen_go_to_second_screen_text_field_label">Параметр второго экрана</string>
+    <string name="home_screen_go_to_second_screen_button">Перейти на второй экран</string>
+    <string name="about_screen_text">Создано в рамках изучения мобильной разработки</string>
 </resources>

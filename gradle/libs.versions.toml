@@ -16,6 +16,7 @@ kotlin = "2.3.20"
 kotlinx-coroutines = "1.10.2"
 material3 = "1.10.0-alpha05"
 materialIconsExtended = "1.7.3"
+decompose = "3.4.0"
 
 [libraries]
 material3-adaptive = "org.jetbrains.compose.material3.adaptive:adaptive:1.2.0"
@@ -38,6 +39,8 @@ compose-components-resources = { module = "org.jetbrains.compose.components:comp
 compose-uiToolingPreview = { module = "org.jetbrains.compose.ui:ui-tooling-preview", version.ref = "composeMultiplatform" }
 kotlinx-coroutinesSwing = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-swing", version.ref = "kotlinx-coroutines" }
 material-icons-extended = { module = "org.jetbrains.compose.material:material-icons-extended", version.ref = "materialIconsExtended" }
+decompose = { module = "com.arkivanov.decompose:decompose", version.ref = "decompose" }
+decompose-extensions-compose = { module = "com.arkivanov.decompose:extensions-compose", version.ref = "decompose" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
@@ -46,3 +49,4 @@ composeHotReload = { id = "org.jetbrains.compose.hot-reload", version.ref = "com
 composeMultiplatform = { id = "org.jetbrains.compose", version.ref = "composeMultiplatform" }
 composeCompiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
