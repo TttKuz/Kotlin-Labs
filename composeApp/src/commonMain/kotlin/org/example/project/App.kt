@@ -1,73 +1,55 @@
 package org.example.project
 
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material3.*
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.material3.Button
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-
-data class ShoppingListItem(
-    val description: String,
-    val bought: Boolean = false
-)
+import kotlinproject.composeapp.generated.resources.Res
+import kotlinproject.composeapp.generated.resources.compose_multiplatform
+import kotlinproject.composeapp.generated.resources.decrement
+import kotlinproject.composeapp.generated.resources.increment
+import kotlinproject.composeapp.generated.resources.parametrised
+import kotlinproject.composeapp.generated.resources.parametrised2
+import kotlinproject.composeapp.generated.resources.string1
+import kotlinproject.composeapp.generated.resources.string2
+import kotlinproject.composeapp.generated.resources.things
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.pluralStringResource
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun App() {
-    val shoppingList = remember {
-        mutableStateListOf(ShoppingListItem("Молоко"), ShoppingListItem("Мука"))
-    }
-    var newItemDesc by remember { mutableStateOf("") }
-    LazyColumn {
-        item {
-            OutlinedTextField(
-                value = newItemDesc, onValueChange = { newItemDesc = it },
-                modifier = Modifier.padding(8.dp),
-                label = {
-                    Text("Название продукта")
-                },
-                trailingIcon = {
-                    IconButton(onClick = {
-                        if (newItemDesc.isNotBlank()) {
-                            shoppingList.add(ShoppingListItem(newItemDesc.trim()))
-                            newItemDesc = ""
-                        }
-                    }) {
-                        Icon(Icons.Default.Add, contentDescription = "Добавить")
-                    }
-                })
-        }
-        itemsIndexed(shoppingList) { i, item ->
-            ShoppingListElement(
-                item,
-                onBoughtChange = {
-                    shoppingList[i] = item.copy(bought = it)
-                },
-                onDelete = {
-                    shoppingList.removeAt(i)
-                }
-            )
-        }
-    }
-}
-
-@Composable
-fun ShoppingListElement(item: ShoppingListItem, onBoughtChange: (Boolean) -> Unit, onDelete: () -> Unit) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Checkbox(
-            checked = item.bought,
-            onCheckedChange = onBoughtChange
+    Column {
+        Image(
+            painter = painterResource(Res.drawable.compose_multiplatform),
+            contentDescription = null
         )
-        Text(item.description, Modifier.weight(1f))
-        IconButton(onClick = onDelete) {
-            // contentDescription не отображается на экране, но читается средствами помощи слепым
-            Icon(Icons.Default.Delete, contentDescription = "Удалить")
+
+        Text(stringResource(Res.string.string1))
+        Text(stringResource(Res.string.string2))
+        Text(stringResource(Res.string.parametrised, 100))
+
+        var input by remember { mutableStateOf("") }
+        TextField(value = input, onValueChange = { input = it })
+        Text(stringResource(Res.string.parametrised2, input))
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        var count by remember { mutableIntStateOf(1) }
+
+        Button(onClick = { count += 1 }) {
+            Text(stringResource(Res.string.increment))
         }
+        Button(onClick = { if (count > 0) count -= 1 }) {
+            Text(stringResource(Res.string.decrement))
+        }
+
+        Text(pluralStringResource(Res.plurals.things, count, count))
     }
 }

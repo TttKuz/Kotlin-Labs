@@ -1,0 +1,12 @@
+<resources>
+    <string name="string1">String from resources 1</string>
+    <string name="string2">String from resources 2</string>
+    <string name="parametrised">Number: %1$d</string>
+    <string name="parametrised2">Input: %1$s</string>
+    <plurals name="things">
+        <item quantity="one">%1$d thing</item>
+        <item quantity="other">%1$d things</item>
+    </plurals>
+    <string name="increment">Increment</string>
+    <string name="decrement">Decrement</string>
+</resources>
